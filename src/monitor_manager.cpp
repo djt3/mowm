@@ -8,6 +8,7 @@ namespace monitor_manager {
   XineramaScreenInfo* screen_info;
 
   std::vector<monitor> monitors;
+  int active_monitor_idx = 0;
 
   bool init() {
     if (!XineramaIsActive(globals::display)) {
@@ -39,5 +40,14 @@ namespace monitor_manager {
       screen_info = XineramaQueryScreens(globals::display, &monitor_count);
 
     return monitor_count;
+  }
+
+  monitor* get_monitor_with_workspace(int workspace_idx) {
+    for (auto& monitor : monitors) {
+      if (monitor.workspace_idx == workspace_idx)
+        return &monitor;
+    }
+
+    return nullptr;
   }
 }

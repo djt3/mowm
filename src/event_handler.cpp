@@ -1,6 +1,7 @@
 #include "event_handler.h"
 #include "config.h"
 #include "globals.h"
+#include "layout_manager.h"
 
 #include <cstring>
 #include <sys/types.h>
@@ -33,9 +34,27 @@ namespace event_handler {
         break;
       }
     }
+
+    void map_request(const XMapRequestEvent& event) {
+      // get keypress and enter events for new window
+      XSelectInput(globals::display, event.window, KeyPressMask | EnterWindowMask);
+      // map the new window to the screen
+      XMapWindow(globals::display, event.window);
+
+      layout_manager::add_new_window(event.window);
+    }
+
+    void destroy_notify(const XDestroyWindowEvent& event) {
+      layout_manager::destroy_window(event.window);
+    }
   }
 
   void dispatch(XEvent& event) {
-    
+    if (event.type == KeyPress)
+      events::key_press(event.xkey);
+    else if (event.type == MapRequest)
+      events::map_request(event.xmaprequest);
+    else if (event.type == DestroyNotify)
+      events::destroy_notify(event.xdestroywindow);
   }
 }

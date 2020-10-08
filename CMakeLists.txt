@@ -10,7 +10,7 @@ include(FindPkgConfig)
 FILE(GLOB cppsources *.cpp)
 
 add_executable(mowm src/main.cpp src/config.cpp src/monitor_manager.cpp
-	src/globals.cpp src/event_handler.cpp)
+	src/globals.cpp src/event_handler.cpp src/layout_manager.cpp)
 target_link_libraries(mowm libX11.so libXinerama.so)
 
 install(TARGETS ${PROJECT_NAME})

@@ -28,9 +28,12 @@ struct monitor {
 
 namespace monitor_manager {
   extern std::vector<monitor> monitors;
+  extern int active_monitor_idx;
 
   extern bool init();
   extern int get_monitor_count(bool force_update = false);
+
+  extern monitor* get_monitor_with_workspace(int workspace_idx);
 }
 
 #endif
