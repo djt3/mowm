@@ -17,6 +17,8 @@ namespace layout_manager {
 
   extern std::array<workspace, 10> workspaces;
 
+  extern void switch_workspace(int workspace_idx);
+
   extern void add_new_window(Window window);
   extern void add_window_to_workspace(Window window, int workspace_id);
   extern void destroy_window(Window window);

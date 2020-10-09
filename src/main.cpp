@@ -1,10 +1,16 @@
 #include <X11/Xlib.h>
 #include <cstring>
+#include <iostream>
 
 #include "globals.h"
 #include "config.h"
 #include "event_handler.h"
 #include "monitor_manager.h"
+
+int error_handler(Display* display, XErrorEvent* error) {
+  std::cout << "caught error type " << error->type << std::endl;
+  return 1;
+}
 
 int main() {
   if (!(globals::display = XOpenDisplay(0)) || !monitor_manager::init())
@@ -15,6 +21,8 @@ int main() {
 
   XSelectInput(globals::display, root_window, SubstructureRedirectMask | KeyPressMask | SubstructureNotifyMask);
   XDefineCursor(globals::display, root_window, XCreateFontCursor(globals::display, 60));
+
+  XSetErrorHandler(&error_handler);
 
   // initialize keybinds
   config::init();

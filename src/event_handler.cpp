@@ -2,10 +2,12 @@
 #include "config.h"
 #include "globals.h"
 #include "layout_manager.h"
+#include "monitor_manager.h"
 
 #include <cstring>
 #include <sys/types.h>
 #include <unistd.h>
+#include <iostream>
 
 namespace event_handler {
   namespace events {
@@ -28,7 +30,8 @@ namespace event_handler {
         }
 
         if (keybind.wm_command == wm_commands::workspace) {
-
+          int idx = keybind.cmd[strlen(keybind.cmd) - 1] - '0';
+          layout_manager::switch_workspace(idx);
         }
 
         break;
@@ -47,14 +50,33 @@ namespace event_handler {
     void destroy_notify(const XDestroyWindowEvent& event) {
       layout_manager::destroy_window(event.window);
     }
+
   }
 
   void dispatch(XEvent& event) {
+    if (event.type == DestroyNotify)
+      std::cout << "destroy" << std::endl;
+    else if (event.type == ConfigureRequest)
+      std::cout << "confreq" << std::endl;
+    else if (event.type == FocusIn)
+      std::cout << "focin" << std::endl;
+    else if (event.type == FocusOut)
+      std::cout << "focout" << std::endl;
+    else if (event.type == MapRequest)
+      std::cout << "mapreq" << std::endl;
+    else if (event.type == MapNotify)
+      std::cout << "mapnotif" << std::endl;
+    else if (event.type == UnmapNotify)
+      std::cout << "unmapnotif" << std::endl;
+    else if (event.type > 3)
+      std::cout << event.type << std::endl;
+
     if (event.type == KeyPress)
       events::key_press(event.xkey);
     else if (event.type == MapRequest)
       events::map_request(event.xmaprequest);
     else if (event.type == DestroyNotify)
       events::destroy_notify(event.xdestroywindow);
+    //layout_manager::update_workspace_layout(monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx);
   }
 }

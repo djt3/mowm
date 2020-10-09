@@ -2,6 +2,8 @@
 #include "monitor_manager.h"
 #include "globals.h"
 
+#include <iostream>
+
 namespace layout_manager {
   std::array<workspace, 10> workspaces;
 
@@ -23,6 +25,15 @@ namespace layout_manager {
       XMapWindow(globals::display, window);
 
     is_mapped = true;
+  }
+
+  void switch_workspace(int workspace_idx) {
+    auto& current_monitor = monitor_manager::monitors[monitor_manager::active_monitor_idx];
+    // unmap old workspace
+    workspaces[current_monitor.workspace_idx].unmap();
+    // map new workspace
+    current_monitor.workspace_idx = workspace_idx;
+    workspaces[current_monitor.workspace_idx].map();
   }
 
   void add_new_window(Window window) {
@@ -81,15 +92,16 @@ namespace layout_manager {
     XSetInputFocus(globals::display, workspace.windows[workspace.focused_idx], RevertToPointerRoot, CurrentTime);
 
     // only one window - fullscreen
-    if (workspace.windows.size() == 1) {
-      for (auto& window : workspace.windows)
-      XMoveResizeWindow(globals::display, window, monitor->pos.x, monitor->pos.y,
+    if (workspace.windows.size() == 1)
+      XMoveResizeWindow(globals::display, workspace.windows[0], monitor->pos.x, monitor->pos.y,
                         monitor->dim.width, monitor->dim.height);
-    }
+
 
     else {
       auto subheight = monitor->dim.height / (workspace.windows.size() - 1);
 
+
+      std::cout << workspace.windows[workspace.primary_idx] << "primary" << std::endl;
       // primary window takes up the left
       XMoveResizeWindow(globals::display, workspace.windows[workspace.primary_idx], monitor->pos.x, monitor->pos.y,
                         monitor->dim.width / 2, monitor->dim.height);
@@ -101,13 +113,8 @@ namespace layout_manager {
         if (i == workspace.primary_idx)
           continue;
 
-        try {
-          XMoveResizeWindow(globals::display, workspace.windows[i], monitor->pos.x + monitor->dim.width / 2, monitor->pos.y + current_y,
-                            monitor->dim.width / 2, y_step);
-        }
-        catch (...) {
-          
-        }
+        XMoveResizeWindow(globals::display, workspace.windows[i], monitor->pos.x + monitor->dim.width / 2, monitor->pos.y + current_y,
+                          monitor->dim.width / 2, y_step);
 
         current_y += y_step;
       }

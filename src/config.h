@@ -25,7 +25,7 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
 
   bool triggered_by(const XKeyEvent& key_event) const {
     return key_event.keycode == this->keycode &&
-      (key_event.state == this->mask || has_shift_binding() && key_event.state == this->mask | ShiftMask);
+      (key_event.state == this->mask || (has_shift_binding() && key_event.state == (this->mask | ShiftMask)));
   }
 
   bool has_shift_binding() const {
