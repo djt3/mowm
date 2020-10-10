@@ -24,10 +24,12 @@ namespace monitor_manager {
 
       if (i >= monitors.size()) {
         monitor.workspace_idx = i + 1;
+        monitor.old_workspace_idx = i + 1;
         monitors.push_back(monitor);
       }
       else {
         monitor.workspace_idx = monitors[i].workspace_idx;
+        monitor.old_workspace_idx = monitors[i].old_workspace_idx;
         monitors[i] = monitor;
       }
     }

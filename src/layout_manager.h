@@ -16,8 +16,11 @@ namespace layout_manager {
 
   extern std::array<workspace, 10> workspaces;
 
+  extern void tab_window_focus(bool reverse = false);
+  extern void tab_workspace();
   extern void switch_workspace(int workspace_idx);
   extern void move_focused_window_to_workspace(int workspace_idx);
+  extern void kill_focused_window();
 
   extern void add_new_window(Window window);
   extern void add_window_to_workspace(Window window, int workspace_idx);

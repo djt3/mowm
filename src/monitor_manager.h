@@ -23,7 +23,7 @@ struct monitor {
 
   dimensions dim;
   position pos;
-  int workspace_idx = 0;
+  int workspace_idx, old_workspace_idx;
 };
 
 namespace monitor_manager {

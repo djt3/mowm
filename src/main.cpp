@@ -22,6 +22,7 @@ int main() {
   XSelectInput(globals::display, root_window, SubstructureRedirectMask | KeyPressMask | SubstructureNotifyMask);
   XDefineCursor(globals::display, root_window, XCreateFontCursor(globals::display, 60));
 
+  // ignore X errors
   XSetErrorHandler(&error_handler);
 
   // initialize keybinds
@@ -31,8 +32,8 @@ int main() {
   for (const auto& keybind : config::key_bindings) {
     XGrabKey(globals::display, keybind.keycode, keybind.mask, root_window, false, GrabModeAsync, GrabModeAsync);
 
-    // we also want to bind workspace + shift
-    if (std::strstr(keybind.cmd, "wm_ws"))
+    // some keybinds also need to grab mod + shift
+    if (keybind.has_shift_binding())
       XGrabKey(globals::display, keybind.keycode, keybind.mask | SHIFT, root_window, false, GrabModeAsync, GrabModeAsync);
   }
 

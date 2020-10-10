@@ -17,6 +17,27 @@ namespace layout_manager {
       XMapWindow(globals::display, window);
   }
 
+  void tab_workspace() {
+    switch_workspace(monitor_manager::get_active_monitor().old_workspace_idx);
+  }
+
+  void tab_window_focus(bool reverse) {
+    int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+    workspace& current_workspace = workspaces[current_workspace_idx];
+    if (current_workspace.windows.size() < 2)
+      return;
+
+    if (!reverse)
+      current_workspace.focused_idx = ++current_workspace.focused_idx % current_workspace.windows.size();
+    else {
+      current_workspace.focused_idx = --current_workspace.focused_idx;
+      if (current_workspace.focused_idx < 0)
+        current_workspace.focused_idx = current_workspace.windows.size() - 1;
+    }
+
+    XSetInputFocus(globals::display, current_workspace.windows[current_workspace.focused_idx], RevertToPointerRoot, CurrentTime);
+  }
+
   void switch_workspace(int workspace_idx) {
     monitor& current_monitor = monitor_manager::get_active_monitor();
     if (workspace_idx == current_monitor.workspace_idx)
@@ -24,7 +45,10 @@ namespace layout_manager {
 
     // unmap old workspace
     workspaces[current_monitor.workspace_idx].unmap();
-    // map new workspace
+
+    // save previous workspace
+    current_monitor.old_workspace_idx = current_monitor.workspace_idx;
+    // switch to new workspace
     current_monitor.workspace_idx = workspace_idx;
     workspaces[current_monitor.workspace_idx].map();
     // layout the windows
@@ -34,6 +58,9 @@ namespace layout_manager {
   void move_focused_window_to_workspace(int workspace_idx) {
     int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
     workspace& current_workspace = workspaces[current_workspace_idx];
+    if (current_workspace.windows.empty())
+      return;
+
     Window focused_window = current_workspace.windows[current_workspace.focused_idx];
 
     remove_window_from_workspace(focused_window, current_workspace_idx);
@@ -41,12 +68,22 @@ namespace layout_manager {
 
     // update the original workspace layout
     update_workspace_layout(current_workspace_idx);
+
     // if the new workspace is visible, update the layout also
     if (monitor_manager::get_monitor_with_workspace(workspace_idx))
       update_workspace_layout(workspace_idx);
     // if not visible, unmap the window
     else
       XUnmapWindow(globals::display, focused_window);
+  }
+
+  void kill_focused_window() {
+    int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+    workspace& current_workspace = workspaces[current_workspace_idx];
+    if (current_workspace.windows.empty())
+      return;
+
+    XKillClient(globals::display, current_workspace.windows[current_workspace.focused_idx]);
   }
 
   void add_new_window(Window window) {
@@ -127,6 +164,7 @@ namespace layout_manager {
 
 
       std::cout << workspace.windows[workspace.primary_idx] << "primary" << std::endl;
+
       // primary window takes up the left
       XMoveResizeWindow(globals::display, workspace.windows[workspace.primary_idx], monitor->pos.x, monitor->pos.y,
                         monitor->dim.width / 2, monitor->dim.height);

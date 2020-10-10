@@ -20,8 +20,11 @@ namespace config {
     BIND(KEY(XK_7), "wm_workspace7");
     BIND(KEY(XK_8), "wm_workspace8");
     BIND(KEY(XK_9), "wm_workspace9");
+    BIND(KEY(XK_Tab), "wm_tabworkspace");
 
     // window bindings
+    BIND(KEY(XK_J), "wm_tabwin_r");
+    BIND(KEY(XK_H), "wm_tabwin_l");
     BIND(KEY(XK_Q), "wm_kill");
 
     // command bindings

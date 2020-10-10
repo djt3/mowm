@@ -26,10 +26,9 @@ namespace event_handler {
           setsid();
           char* arg[] = {const_cast<char*>(keybind.cmd), NULL};
           execvp(arg[0], arg);
-          break;
         }
 
-        if (keybind.wm_command == wm_commands::workspace) {
+        else if (keybind.wm_command == wm_commands::workspace) {
           int idx = keybind.cmd[strlen(keybind.cmd) - 1] - '0';
 
           // switch to workspace
@@ -40,6 +39,15 @@ namespace event_handler {
           else
             layout_manager::move_focused_window_to_workspace(idx);
         }
+
+        else if (keybind.wm_command == wm_commands::tab_win)
+          layout_manager::tab_window_focus(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
+
+        else if (keybind.wm_command == wm_commands::tab_workspace)
+          layout_manager::tab_workspace();
+
+        else if (keybind.wm_command == wm_commands::kill_window)
+          layout_manager::kill_focused_window();
 
         break;
       }
@@ -57,7 +65,6 @@ namespace event_handler {
     void destroy_notify(const XDestroyWindowEvent& event) {
       layout_manager::remove_window_from_workspace(event.window);
     }
-
   }
 
   void dispatch(XEvent& event) {

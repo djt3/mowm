@@ -9,18 +9,30 @@
 
 enum class wm_commands : uint8_t {
   none = 0,
-  workspace,
-  tabmonitor
+    workspace,
+    tab_workspace,
+    tab_monitor,
+    tab_win,
+    kill_window,
 };
 
 struct key_binding {
 key_binding(unsigned mask, unsigned keycode, const char* cmd) :
   mask(mask), keycode(keycode), cmd(cmd)
   {
+    if (this->cmd[0] != 'w' || this->cmd[1] != 'm')
+      return;
+
     if (std::strstr(this->cmd, "wm_workspace"))
       this->wm_command = wm_commands::workspace;
-    if (std::strstr(this->cmd, "wm_tabmon"))
-      this->wm_command = wm_commands::tabmonitor;
+    else if (std::strstr(this->cmd, "wm_tabmon"))
+      this->wm_command = wm_commands::tab_monitor;
+    else if (std::strstr(this->cmd, "wm_tabwork"))
+      this->wm_command = wm_commands::tab_workspace;
+    else if (std::strstr(this->cmd, "wm_kill"))
+      this->wm_command = wm_commands::kill_window;
+    else if (std::strstr(this->cmd, "wm_tabwin"))
+      this->wm_command = wm_commands::tab_win;
   }
 
   bool triggered_by(const XKeyEvent& event) const {
@@ -33,8 +45,7 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
   }
 
   bool has_shift_binding() const {
-    return this->wm_command == wm_commands::workspace ||
-      this->wm_command == wm_commands::tabmonitor;
+    return this->wm_command == wm_commands::workspace;
   }
 
   bool is_wm_command() const {
