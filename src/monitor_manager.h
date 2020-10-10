@@ -33,6 +33,7 @@ namespace monitor_manager {
   extern bool init();
   extern int get_monitor_count(bool force_update = false);
 
+  extern monitor& get_active_monitor();
   extern monitor* get_monitor_with_workspace(int workspace_idx);
 }
 

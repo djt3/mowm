@@ -11,9 +11,9 @@
 
 namespace event_handler {
   namespace events {
-    void key_press(const XKeyEvent& key_event) {
+    void key_press(const XKeyEvent& event) {
       for (const auto& keybind : config::key_bindings) {
-        if (!keybind.triggered_by(key_event))
+        if (!keybind.triggered_by(event))
           continue;
 
         // if the keybind isn't for the wm
@@ -31,7 +31,14 @@ namespace event_handler {
 
         if (keybind.wm_command == wm_commands::workspace) {
           int idx = keybind.cmd[strlen(keybind.cmd) - 1] - '0';
-          layout_manager::switch_workspace(idx);
+
+          // switch to workspace
+          if (!keybind.is_shifted(event))
+            layout_manager::switch_workspace(idx);
+
+          // move window to workspace
+          else
+            layout_manager::move_focused_window_to_workspace(idx);
         }
 
         break;
@@ -48,7 +55,7 @@ namespace event_handler {
     }
 
     void destroy_notify(const XDestroyWindowEvent& event) {
-      layout_manager::destroy_window(event.window);
+      layout_manager::remove_window_from_workspace(event.window);
     }
 
   }

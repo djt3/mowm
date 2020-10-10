@@ -23,9 +23,13 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
       this->wm_command = wm_commands::tabmonitor;
   }
 
-  bool triggered_by(const XKeyEvent& key_event) const {
-    return key_event.keycode == this->keycode &&
-      (key_event.state == this->mask || (has_shift_binding() && key_event.state == (this->mask | ShiftMask)));
+  bool triggered_by(const XKeyEvent& event) const {
+    return event.keycode == this->keycode &&
+      (event.state == this->mask || (has_shift_binding() && this->is_shifted(event)));
+  }
+
+  bool is_shifted(const XKeyEvent& event) const {
+    return event.state == (this->mask | ShiftMask);
   }
 
   bool has_shift_binding() const {

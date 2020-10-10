@@ -18,7 +18,7 @@ namespace layout_manager {
   }
 
   void switch_workspace(int workspace_idx) {
-    auto& current_monitor = monitor_manager::monitors[monitor_manager::active_monitor_idx];
+    monitor& current_monitor = monitor_manager::get_active_monitor();
     if (workspace_idx == current_monitor.workspace_idx)
       return;
 
@@ -27,10 +27,30 @@ namespace layout_manager {
     // map new workspace
     current_monitor.workspace_idx = workspace_idx;
     workspaces[current_monitor.workspace_idx].map();
+    // layout the windows
+    update_workspace_layout(workspace_idx);
+  }
+
+  void move_focused_window_to_workspace(int workspace_idx) {
+    int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+    workspace& current_workspace = workspaces[current_workspace_idx];
+    Window focused_window = current_workspace.windows[current_workspace.focused_idx];
+
+    remove_window_from_workspace(focused_window, current_workspace_idx);
+    add_window_to_workspace(focused_window, workspace_idx);
+
+    // update the original workspace layout
+    update_workspace_layout(current_workspace_idx);
+    // if the new workspace is visible, update the layout also
+    if (monitor_manager::get_monitor_with_workspace(workspace_idx))
+      update_workspace_layout(workspace_idx);
+    // if not visible, unmap the window
+    else
+      XUnmapWindow(globals::display, focused_window);
   }
 
   void add_new_window(Window window) {
-    int workspace_idx = monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx;
+    int workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
     add_window_to_workspace(window, workspace_idx);
   }
 
@@ -49,9 +69,9 @@ namespace layout_manager {
       update_workspace_layout(workspace_idx);
   }
 
-  void destroy_window(Window window) {
-    for (int w = 0; w < workspaces.size(); w++) {
-      workspace& workspace = workspaces[w];
+  void remove_window_from_workspace(Window window, int workspace_idx) {
+    auto remove_window = [](const Window& window, int workspace_idx) -> bool {
+      workspace& workspace = workspaces[workspace_idx];
 
       for (int i = 0; i < workspace.windows.size(); i++) {
         if (workspace.windows[i] == window) {
@@ -63,14 +83,26 @@ namespace layout_manager {
             if (workspace.primary_idx >= workspace.windows.size())
               workspace.primary_idx--;
 
-            update_workspace_layout(w);
+            update_workspace_layout(workspace_idx);
           }
 
-          w = 1000;
-          break;
+          return true;
         }
       }
+
+      return false;
+    };
+
+    // if no workspace was specified, find one with this window in
+    if (workspace_idx == -1) {
+      for (int w = 0; w < workspaces.size(); w++) {
+        if (remove_window(window, w))
+          break;
+      }
     }
+
+    else
+      remove_window(window, workspace_idx);
   }
 
   void update_workspace_layout(int workspace_idx) {

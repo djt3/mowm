@@ -42,6 +42,10 @@ namespace monitor_manager {
     return monitor_count;
   }
 
+  monitor& get_active_monitor() {
+    return monitors[active_monitor_idx];
+  }
+
   monitor* get_monitor_with_workspace(int workspace_idx) {
     for (auto& monitor : monitors) {
       if (monitor.workspace_idx == workspace_idx)
