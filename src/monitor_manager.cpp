@@ -23,7 +23,7 @@ namespace monitor_manager {
       monitor monitor(screen_info[i]);
 
       if (i >= monitors.size()) {
-        monitor.workspace_idx = i;
+        monitor.workspace_idx = i + 1;
         monitors.push_back(monitor);
       }
       else {

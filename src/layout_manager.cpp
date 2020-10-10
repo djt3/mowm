@@ -19,6 +19,9 @@ namespace layout_manager {
 
   void switch_workspace(int workspace_idx) {
     auto& current_monitor = monitor_manager::monitors[monitor_manager::active_monitor_idx];
+    if (workspace_idx == current_monitor.workspace_idx)
+      return;
+
     // unmap old workspace
     workspaces[current_monitor.workspace_idx].unmap();
     // map new workspace
