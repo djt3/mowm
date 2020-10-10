@@ -8,23 +8,13 @@ namespace layout_manager {
   std::array<workspace, 10> workspaces;
 
   void workspace::unmap() {
-    if (!is_mapped)
-      return;
-
     for (auto& window : windows)
       XUnmapWindow(globals::display, window);
-
-    is_mapped = false;
   }
 
   void workspace::map() {
-    if (is_mapped)
-      return;
-
     for (auto& window : windows)
       XMapWindow(globals::display, window);
-
-    is_mapped = true;
   }
 
   void switch_workspace(int workspace_idx) {

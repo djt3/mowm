@@ -9,7 +9,6 @@ namespace layout_manager {
   struct workspace {
     std::vector<Window> windows;
     int focused_idx, primary_idx;
-    bool is_mapped = false;
 
     void unmap();
     void map();
