@@ -17,6 +17,46 @@ namespace layout_manager {
       XMapWindow(globals::display, window);
   }
 
+  int find_window_idx_in_workspace(Window window, int workspace_idx) {
+    workspace& workspace = workspaces[workspace_idx];
+
+    for (int i = 0; i < workspace.windows.size(); i++) {
+      if (workspace.windows[i] == window)
+        return i;
+    }
+
+    return -1;
+  }
+
+  int find_workspace_idx_with_window(Window window) {
+    for (int w = 0; w < workspaces.size(); w++) {
+      const workspace& workspace = workspaces[w];
+
+      for (int i = 0; i < workspace.windows.size(); i++) {
+        if (window == workspace.windows[i])
+          return w;
+      }
+    }
+
+    return -1;
+  }
+
+  void focus_window(Window window) {
+    int workspace_idx = find_workspace_idx_with_window(window);
+    if (workspace_idx == -1)
+      return;
+
+    workspace& workspace = workspaces[workspace_idx];
+
+    int window_idx = find_window_idx_in_workspace(window, workspace_idx);
+    if (window_idx == -1)
+      return;
+
+    XSetInputFocus(globals::display, window, RevertToPointerRoot, CurrentTime);
+
+    workspace.focused_idx = window_idx;
+  }
+
   void tab_workspace() {
     switch_workspace(monitor_manager::get_active_monitor().old_workspace_idx);
   }
@@ -83,6 +123,7 @@ namespace layout_manager {
     if (current_workspace.windows.empty())
       return;
 
+    XSetCloseDownMode(globals::display, DestroyAll);
     XKillClient(globals::display, current_workspace.windows[current_workspace.focused_idx]);
   }
 
@@ -131,12 +172,8 @@ namespace layout_manager {
     };
 
     // if no workspace was specified, find one with this window in
-    if (workspace_idx == -1) {
-      for (int w = 0; w < workspaces.size(); w++) {
-        if (remove_window(window, w))
-          break;
-      }
-    }
+    if (workspace_idx == -1)
+      remove_window(window, find_workspace_idx_with_window(window));
 
     else
       remove_window(window, workspace_idx);

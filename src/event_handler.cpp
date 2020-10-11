@@ -65,6 +65,10 @@ namespace event_handler {
     void destroy_notify(const XDestroyWindowEvent& event) {
       layout_manager::remove_window_from_workspace(event.window);
     }
+
+    void enter_notify(const XCrossingEvent& event) {
+      layout_manager::focus_window(event.window);
+    }
   }
 
   void dispatch(XEvent& event) {
@@ -91,6 +95,8 @@ namespace event_handler {
       events::map_request(event.xmaprequest);
     else if (event.type == DestroyNotify)
       events::destroy_notify(event.xdestroywindow);
+    else if (event.type == EnterNotify)
+      events::enter_notify(event.xcrossing);
     //layout_manager::update_workspace_layout(monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx);
   }
 }
