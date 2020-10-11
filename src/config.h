@@ -14,6 +14,7 @@ enum class wm_commands : uint8_t {
     tab_monitor,
     tab_win,
     kill_window,
+    make_primary,
 };
 
 struct key_binding {
@@ -33,6 +34,8 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
       this->wm_command = wm_commands::kill_window;
     else if (std::strstr(this->cmd, "wm_tabwin"))
       this->wm_command = wm_commands::tab_win;
+    else if (std::strstr(this->cmd, "wm_makeprimary"))
+      this->wm_command = wm_commands::make_primary;
   }
 
   bool triggered_by(const XKeyEvent& event) const {

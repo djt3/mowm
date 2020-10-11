@@ -57,6 +57,16 @@ namespace layout_manager {
     workspace.focused_idx = window_idx;
   }
 
+  void make_focused_window_primary() {
+    int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+    workspace& current_workspace = workspaces[current_workspace_idx];
+    if (current_workspace.windows.size() < 2)
+      return;
+
+    current_workspace.primary_idx = current_workspace.focused_idx;
+    update_workspace_layout(current_workspace_idx);
+  }
+
   void tab_workspace() {
     switch_workspace(monitor_manager::get_active_monitor().old_workspace_idx);
   }

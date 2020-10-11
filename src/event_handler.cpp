@@ -49,6 +49,9 @@ namespace event_handler {
         else if (keybind.wm_command == wm_commands::kill_window)
           layout_manager::kill_focused_window();
 
+        else if (keybind.wm_command == wm_commands::make_primary)
+          layout_manager::make_focused_window_primary();
+
         break;
       }
     }
