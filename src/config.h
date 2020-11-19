@@ -10,9 +10,10 @@
 enum class wm_commands : uint8_t {
   none = 0,
     workspace,
-    tab_workspace,
-    tab_monitor,
-    tab_win,
+    cycle_workspace,
+    cycle_monitor,
+    cycle_win,
+    cycle_stack,
     kill_window,
     make_primary,
 };
@@ -27,13 +28,15 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
     if (std::strstr(this->cmd, "wm_workspace"))
       this->wm_command = wm_commands::workspace;
     else if (std::strstr(this->cmd, "wm_tabmon"))
-      this->wm_command = wm_commands::tab_monitor;
+      this->wm_command = wm_commands::cycle_monitor;
     else if (std::strstr(this->cmd, "wm_tabwork"))
-      this->wm_command = wm_commands::tab_workspace;
+      this->wm_command = wm_commands::cycle_workspace;
     else if (std::strstr(this->cmd, "wm_kill"))
       this->wm_command = wm_commands::kill_window;
-    else if (std::strstr(this->cmd, "wm_tabwin"))
-      this->wm_command = wm_commands::tab_win;
+    else if (std::strstr(this->cmd, "wm_cyclewin"))
+      this->wm_command = wm_commands::cycle_win;
+    else if (std::strstr(this->cmd, "wm_cyclestack"))
+      this->wm_command = wm_commands::cycle_stack;
     else if (std::strstr(this->cmd, "wm_makeprimary"))
       this->wm_command = wm_commands::make_primary;
   }

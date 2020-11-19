@@ -9,31 +9,31 @@ namespace layout_manager {
 
   void workspace::unmap() {
     for (auto& window : windows)
-      XUnmapWindow(globals::display, window);
+      XUnmapWindow(globals::display, window.xwindow);
   }
 
   void workspace::map() {
     for (auto& window : windows)
-      XMapWindow(globals::display, window);
+      XMapWindow(globals::display, window.xwindow);
   }
 
-  int find_window_idx_in_workspace(Window window, int workspace_idx) {
+  int find_window_idx_in_workspace(Window xwindow, int workspace_idx) {
     workspace& workspace = workspaces[workspace_idx];
 
     for (int i = 0; i < workspace.windows.size(); i++) {
-      if (workspace.windows[i] == window)
+      if (workspace.windows[i].xwindow == xwindow)
         return i;
     }
 
     return -1;
   }
 
-  int find_workspace_idx_with_window(Window window) {
+  int find_workspace_idx_with_window(Window xwindow) {
     for (int w = 0; w < workspaces.size(); w++) {
       const workspace& workspace = workspaces[w];
 
       for (int i = 0; i < workspace.windows.size(); i++) {
-        if (window == workspace.windows[i])
+        if (xwindow == workspace.windows[i].xwindow)
           return w;
       }
     }
@@ -41,18 +41,18 @@ namespace layout_manager {
     return -1;
   }
 
-  void focus_window(Window window) {
-    int workspace_idx = find_workspace_idx_with_window(window);
+  void focus_window(Window xwindow) {
+    int workspace_idx = find_workspace_idx_with_window(xwindow);
     if (workspace_idx == -1)
       return;
 
     workspace& workspace = workspaces[workspace_idx];
 
-    int window_idx = find_window_idx_in_workspace(window, workspace_idx);
+    int window_idx = find_window_idx_in_workspace(xwindow, workspace_idx);
     if (window_idx == -1)
       return;
 
-    XSetInputFocus(globals::display, window, RevertToPointerRoot, CurrentTime);
+    XSetInputFocus(globals::display, xwindow, RevertToPointerRoot, CurrentTime);
 
     workspace.focused_idx = window_idx;
   }
@@ -63,15 +63,24 @@ namespace layout_manager {
     if (current_workspace.windows.size() < 2)
       return;
 
-    current_workspace.primary_idx = current_workspace.focused_idx;
+    auto& focused_window = current_workspace.windows[current_workspace.focused_idx];
+
+    // find the current primary window and swap its position with the curent focused window
+    for (auto& window : current_workspace.windows) {
+      if (window.stack_idx == 0)
+        window.stack_idx = focused_window.stack_idx;
+    }
+
+    focused_window.stack_idx = 0;
+
     update_workspace_layout(current_workspace_idx);
   }
 
-  void tab_workspace() {
+  void cycle_workspace() {
     switch_workspace(monitor_manager::get_active_monitor().old_workspace_idx);
   }
 
-  void tab_window_focus(bool reverse) {
+  void cycle_window_focus(bool reverse) {
     int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
     workspace& current_workspace = workspaces[current_workspace_idx];
     if (current_workspace.windows.size() < 2)
@@ -85,7 +94,30 @@ namespace layout_manager {
         current_workspace.focused_idx = current_workspace.windows.size() - 1;
     }
 
-    XSetInputFocus(globals::display, current_workspace.windows[current_workspace.focused_idx], RevertToPointerRoot, CurrentTime);
+    XSetInputFocus(globals::display, current_workspace.windows[current_workspace.focused_idx].xwindow, RevertToPointerRoot, CurrentTime);
+  }
+
+  void cycle_window_stack(bool reverse) {
+    int current_workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+    workspace& current_workspace = workspaces[current_workspace_idx];
+    if (current_workspace.windows.size() < 2)
+      return;
+
+    auto max_idx = current_workspace.windows.size() - 1;
+
+    for (auto& window : current_workspace.windows) {
+      if (reverse && window.stack_idx == 0)
+        window.stack_idx = max_idx; 
+      else if (!reverse && window.stack_idx == max_idx)
+        window.stack_idx = 0;
+      
+      else if (reverse)
+       window.stack_idx--; 
+      else
+        window.stack_idx++;
+    }
+
+    update_workspace_layout(current_workspace_idx);
   }
 
   void switch_workspace(int workspace_idx) {
@@ -111,7 +143,7 @@ namespace layout_manager {
     if (current_workspace.windows.empty())
       return;
 
-    Window focused_window = current_workspace.windows[current_workspace.focused_idx];
+    Window focused_window = current_workspace.windows[current_workspace.focused_idx].xwindow;
 
     remove_window_from_workspace(focused_window, current_workspace_idx);
     add_window_to_workspace(focused_window, workspace_idx);
@@ -134,21 +166,25 @@ namespace layout_manager {
       return;
 
     XSetCloseDownMode(globals::display, DestroyAll);
-    XKillClient(globals::display, current_workspace.windows[current_workspace.focused_idx]);
+    XKillClient(globals::display, current_workspace.windows[current_workspace.focused_idx].xwindow);
   }
 
-  void add_new_window(Window window) {
+  void add_new_window(Window xwindow) {
     int workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
-    add_window_to_workspace(window, workspace_idx);
+    add_window_to_workspace(xwindow, workspace_idx);
   }
 
-  void add_window_to_workspace(Window window, int workspace_idx) {
+  void add_window_to_workspace(Window xwindow, int workspace_idx) {
     workspace& workspace = workspaces[workspace_idx];
 
     // focus the new window
     int new_window_idx = workspace.windows.size();
     workspace.focused_idx = new_window_idx;
-    workspace.primary_idx = new_window_idx;
+
+    for (auto& window : workspace.windows)
+      window.stack_idx++;
+
+    window window(xwindow);
 
     workspace.windows.push_back(window);
 
@@ -157,36 +193,39 @@ namespace layout_manager {
       update_workspace_layout(workspace_idx);
   }
 
-  void remove_window_from_workspace(Window window, int workspace_idx) {
-    auto remove_window = [](const Window& window, int workspace_idx) -> bool {
+  void remove_window_from_workspace(Window xwindow, int workspace_idx) {
+    auto remove_window = [](const Window& xwindow, int workspace_idx) -> void {
       workspace& workspace = workspaces[workspace_idx];
 
       for (int i = 0; i < workspace.windows.size(); i++) {
-        if (workspace.windows[i] == window) {
+        if (workspace.windows[i].xwindow == xwindow) {
+          uint8_t idx = workspace.windows[i].stack_idx;
+
           workspace.windows.erase(workspace.windows.begin() + i);
 
           if (!workspace.windows.empty()) {
             if (workspace.focused_idx >= workspace.windows.size())
               workspace.focused_idx--;
-            if (workspace.primary_idx >= workspace.windows.size())
-              workspace.primary_idx--;
+
+            for (auto& window : workspace.windows) {
+              if (window.stack_idx > idx)
+                window.stack_idx--;
+            }
 
             update_workspace_layout(workspace_idx);
           }
 
-          return true;
+          return;
         }
       }
-
-      return false;
     };
 
     // if no workspace was specified, find one with this window in
     if (workspace_idx == -1)
-      remove_window(window, find_workspace_idx_with_window(window));
+      remove_window(xwindow, find_workspace_idx_with_window(xwindow));
 
     else
-      remove_window(window, workspace_idx);
+      remove_window(xwindow, workspace_idx);
   }
 
   void update_workspace_layout(int workspace_idx) {
@@ -198,11 +237,11 @@ namespace layout_manager {
     if (!monitor)
       return;
 
-    XSetInputFocus(globals::display, workspace.windows[workspace.focused_idx], RevertToPointerRoot, CurrentTime);
+    XSetInputFocus(globals::display, workspace.windows[workspace.focused_idx].xwindow, RevertToPointerRoot, CurrentTime);
 
     // only one window - fullscreen
     if (workspace.windows.size() == 1)
-      XMoveResizeWindow(globals::display, workspace.windows[0], monitor->pos.x, monitor->pos.y,
+      XMoveResizeWindow(globals::display, workspace.windows[0].xwindow, monitor->pos.x, monitor->pos.y,
                         monitor->dim.width, monitor->dim.height);
 
 
@@ -210,23 +249,15 @@ namespace layout_manager {
       auto subheight = monitor->dim.height / (workspace.windows.size() - 1);
 
 
-      std::cout << workspace.windows[workspace.primary_idx] << "primary" << std::endl;
-
-      // primary window takes up the left
-      XMoveResizeWindow(globals::display, workspace.windows[workspace.primary_idx], monitor->pos.x, monitor->pos.y,
-                        monitor->dim.width / 2, monitor->dim.height);
-
-      unsigned int current_y = 0;
       unsigned int y_step = monitor->dim.height / (workspace.windows.size() - 1);
 
       for (int i = 0; i < workspace.windows.size(); i++) {
-        if (i == workspace.primary_idx)
-          continue;
-
-        XMoveResizeWindow(globals::display, workspace.windows[i], monitor->pos.x + monitor->dim.width / 2, monitor->pos.y + current_y,
-                          monitor->dim.width / 2, y_step);
-
-        current_y += y_step;
+        if (workspace.windows[i].stack_idx  == 0)
+          XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x, monitor->pos.y,
+                        monitor->dim.width / 2, monitor->dim.height);
+        else
+          XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x + monitor->dim.width / 2, monitor->pos.y + y_step * (workspace.windows[i].stack_idx - 1),
+                           monitor->dim.width / 2, y_step);
       }
     }
   }

@@ -40,11 +40,14 @@ namespace event_handler {
             layout_manager::move_focused_window_to_workspace(idx);
         }
 
-        else if (keybind.wm_command == wm_commands::tab_win)
-          layout_manager::tab_window_focus(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
+        else if (keybind.wm_command == wm_commands::cycle_win)
+          layout_manager::cycle_window_focus(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
 
-        else if (keybind.wm_command == wm_commands::tab_workspace)
-          layout_manager::tab_workspace();
+        else if (keybind.wm_command == wm_commands::cycle_stack)
+          layout_manager::cycle_window_stack(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
+
+        else if (keybind.wm_command == wm_commands::cycle_workspace)
+          layout_manager::cycle_workspace();
 
         else if (keybind.wm_command == wm_commands::kill_window)
           layout_manager::kill_focused_window();

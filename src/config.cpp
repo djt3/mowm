@@ -23,8 +23,10 @@ namespace config {
     BIND(KEY(XK_Tab), "wm_tabworkspace");
 
     // window bindings
-    BIND(KEY(XK_H), "wm_tabwin_l");
-    BIND(KEY(XK_L), "wm_tabwin_r");
+    BIND(KEY(XK_H), "wm_cyclewin_l");
+    BIND(KEY(XK_L), "wm_cyclewin_r");
+    BINDMOD(SHIFT, KEY(XK_H), "wm_cyclestack_l");
+    BINDMOD(SHIFT, KEY(XK_L), "wm_cyclestack_r");
     BIND(KEY(XK_Return), "wm_makeprimary");
     BIND(KEY(XK_Q), "wm_kill");
 
