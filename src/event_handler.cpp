@@ -3,6 +3,7 @@
 #include "globals.hpp"
 #include "workspace_manager.hpp"
 #include "monitor_manager.hpp"
+#include "layouts/layouts.hpp"
 
 #include <cstring>
 #include <sys/types.h>
@@ -54,6 +55,19 @@ namespace event_handler {
 
         else if (keybind.wm_command == wm_commands::make_primary)
           workspace_manager::make_focused_window_primary();
+
+        else if (keybind.wm_command == wm_commands::cycle_layout) {
+          int workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
+          
+          // increment the current layour idx
+          ++layout_manager::current_layout %= layout_manager::layouts.size();
+          
+          // map to make sure all windows are shown
+          workspace_manager::workspaces[workspace_idx].map();
+
+          // update the layout
+          workspace_manager::update_workspace_layout(workspace_idx);
+        }
 
         break;
       }

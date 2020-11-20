@@ -14,6 +14,7 @@ enum class wm_commands : uint8_t {
     cycle_monitor,
     cycle_win,
     cycle_stack,
+    cycle_layout,
     kill_window,
     make_primary,
 };
@@ -39,6 +40,8 @@ key_binding(unsigned mask, unsigned keycode, const char* cmd) :
       this->wm_command = wm_commands::cycle_stack;
     else if (std::strstr(this->cmd, "wm_makeprimary"))
       this->wm_command = wm_commands::make_primary;
+    else if (std::strstr(this->cmd, "wm_cyclela"))
+      this->wm_command = wm_commands::cycle_layout;
   }
 
   bool triggered_by(const XKeyEvent& event) const {

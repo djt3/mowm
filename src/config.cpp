@@ -30,6 +30,9 @@ namespace config {
     BIND(KEY(XK_Return), "wm_makeprimary");
     BIND(KEY(XK_Q), "wm_kill");
 
+    // layouts
+    BIND(KEY(XK_M), "wm_cyclelayout");
+
     // command bindings
     BIND(KEY(XK_space), "st");
     BINDMOD(SHIFT, KEY(XK_space), "dmenu_run");
