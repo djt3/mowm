@@ -1,21 +1,23 @@
-#include "layout_manager.h"
-#include "monitor_manager.h"
-#include "globals.h"
+#include "workspace_manager.hpp"
+#include "monitor_manager.hpp"
+#include "globals.hpp"
+#include "layouts/layouts.hpp"
 
 #include <iostream>
 
-namespace layout_manager {
+void workspace::unmap() {
+  for (auto& window : windows)
+    XUnmapWindow(globals::display, window.xwindow);
+}
+
+void workspace::map() {
+  for (auto& window : windows)
+    XMapWindow(globals::display, window.xwindow);
+}
+
+namespace workspace_manager {
   std::array<workspace, 10> workspaces;
 
-  void workspace::unmap() {
-    for (auto& window : windows)
-      XUnmapWindow(globals::display, window.xwindow);
-  }
-
-  void workspace::map() {
-    for (auto& window : windows)
-      XMapWindow(globals::display, window.xwindow);
-  }
 
   int find_window_idx_in_workspace(Window xwindow, int workspace_idx) {
     workspace& workspace = workspaces[workspace_idx];
@@ -229,36 +231,6 @@ namespace layout_manager {
   }
 
   void update_workspace_layout(int workspace_idx) {
-    workspace& workspace = workspaces[workspace_idx];
-    if (workspace.windows.empty())
-      return;
-
-    monitor* monitor = monitor_manager::get_monitor_with_workspace(workspace_idx);
-    if (!monitor)
-      return;
-
-    XSetInputFocus(globals::display, workspace.windows[workspace.focused_idx].xwindow, RevertToPointerRoot, CurrentTime);
-
-    // only one window - fullscreen
-    if (workspace.windows.size() == 1)
-      XMoveResizeWindow(globals::display, workspace.windows[0].xwindow, monitor->pos.x, monitor->pos.y,
-                        monitor->dim.width, monitor->dim.height);
-
-
-    else {
-      auto subheight = monitor->dim.height / (workspace.windows.size() - 1);
-
-
-      unsigned int y_step = monitor->dim.height / (workspace.windows.size() - 1);
-
-      for (int i = 0; i < workspace.windows.size(); i++) {
-        if (workspace.windows[i].stack_idx  == 0)
-          XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x, monitor->pos.y,
-                        monitor->dim.width / 2, monitor->dim.height);
-        else
-          XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x + monitor->dim.width / 2, monitor->pos.y + y_step * (workspace.windows[i].stack_idx - 1),
-                           monitor->dim.width / 2, y_step);
-      }
-    }
+    layout_manager::layouts[layout_manager::current_layout]->update_workspace_layout(workspace_idx);
   }
 }

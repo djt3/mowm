@@ -1,5 +1,5 @@
-#include "config.h"
-#include "globals.h"
+#include "config.hpp"
+#include "globals.hpp"
 
 #define BINDMOD(mods, code, cmd) key_bindings.push_back(key_binding(SUPER | mods, code, cmd))
 #define BIND(code, cmd) key_bindings.push_back(key_binding(SUPER, code, cmd))

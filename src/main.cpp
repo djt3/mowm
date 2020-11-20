@@ -2,10 +2,11 @@
 #include <cstring>
 #include <iostream>
 
-#include "globals.h"
-#include "config.h"
-#include "event_handler.h"
-#include "monitor_manager.h"
+#include "globals.hpp"
+#include "config.hpp"
+#include "event_handler.hpp"
+#include "monitor_manager.hpp"
+#include "layouts/layouts.hpp"
 
 int error_handler(Display* display, XErrorEvent* error) {
   std::cout << "caught error type " << error->type << std::endl;
@@ -27,6 +28,8 @@ int main() {
 
   // initialize keybinds
   config::init();
+  // populate layouts
+  layout_manager::init();
 
   // register keybinds
   for (const auto& keybind : config::key_bindings) {
@@ -43,4 +46,6 @@ int main() {
 
     event_handler::dispatch(event);
   }
+
+  layout_manager::destroy();
 }

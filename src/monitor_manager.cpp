@@ -1,5 +1,5 @@
-#include "monitor_manager.h"
-#include "globals.h"
+#include "monitor_manager.hpp"
+#include "globals.hpp"
 
 #include <iostream>
 

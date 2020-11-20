@@ -13,15 +13,15 @@ struct window {
   uint8_t stack_idx;
 };
 
-namespace layout_manager {
-  struct workspace {
-    std::vector<window> windows;
-    int focused_idx;
+struct workspace {
+  std::vector<window> windows;
+  int focused_idx;
 
-    void unmap();
-    void map();
-  };
+  void unmap();
+  void map();
+};
 
+namespace workspace_manager {
   extern std::array<workspace, 10> workspaces;
 
   extern void focus_window(Window xwindow);

@@ -1,8 +1,8 @@
-#include "event_handler.h"
-#include "config.h"
-#include "globals.h"
-#include "layout_manager.h"
-#include "monitor_manager.h"
+#include "event_handler.hpp"
+#include "config.hpp"
+#include "globals.hpp"
+#include "workspace_manager.hpp"
+#include "monitor_manager.hpp"
 
 #include <cstring>
 #include <sys/types.h>
@@ -33,27 +33,27 @@ namespace event_handler {
 
           // switch to workspace
           if (!keybind.is_shifted(event))
-            layout_manager::switch_workspace(idx);
+            workspace_manager::switch_workspace(idx);
 
           // move window to workspace
           else
-            layout_manager::move_focused_window_to_workspace(idx);
+            workspace_manager::move_focused_window_to_workspace(idx);
         }
 
         else if (keybind.wm_command == wm_commands::cycle_win)
-          layout_manager::cycle_window_focus(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
+          workspace_manager::cycle_window_focus(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
 
         else if (keybind.wm_command == wm_commands::cycle_stack)
-          layout_manager::cycle_window_stack(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
+          workspace_manager::cycle_window_stack(keybind.cmd[strlen(keybind.cmd) - 1] == 'r');
 
         else if (keybind.wm_command == wm_commands::cycle_workspace)
-          layout_manager::cycle_workspace();
+          workspace_manager::cycle_workspace();
 
         else if (keybind.wm_command == wm_commands::kill_window)
-          layout_manager::kill_focused_window();
+          workspace_manager::kill_focused_window();
 
         else if (keybind.wm_command == wm_commands::make_primary)
-          layout_manager::make_focused_window_primary();
+          workspace_manager::make_focused_window_primary();
 
         break;
       }
@@ -65,36 +65,19 @@ namespace event_handler {
       // map the new window to the screen
       XMapWindow(globals::display, event.window);
 
-      layout_manager::add_new_window(event.window);
+      workspace_manager::add_new_window(event.window);
     }
 
     void destroy_notify(const XDestroyWindowEvent& event) {
-      layout_manager::remove_window_from_workspace(event.window);
+      workspace_manager::remove_window_from_workspace(event.window);
     }
 
     void enter_notify(const XCrossingEvent& event) {
-      layout_manager::focus_window(event.window);
+      workspace_manager::focus_window(event.window);
     }
   }
 
   void dispatch(XEvent& event) {
-    if (event.type == DestroyNotify)
-      std::cout << "destroy" << std::endl;
-    else if (event.type == ConfigureRequest)
-      std::cout << "confreq" << std::endl;
-    else if (event.type == FocusIn)
-      std::cout << "focin" << std::endl;
-    else if (event.type == FocusOut)
-      std::cout << "focout" << std::endl;
-    else if (event.type == MapRequest)
-      std::cout << "mapreq" << std::endl;
-    else if (event.type == MapNotify)
-      std::cout << "mapnotif" << std::endl;
-    else if (event.type == UnmapNotify)
-      std::cout << "unmapnotif" << std::endl;
-    else if (event.type > 3)
-      std::cout << event.type << std::endl;
-
     if (event.type == KeyPress)
       events::key_press(event.xkey);
     else if (event.type == MapRequest)
@@ -103,6 +86,6 @@ namespace event_handler {
       events::destroy_notify(event.xdestroywindow);
     else if (event.type == EnterNotify)
       events::enter_notify(event.xcrossing);
-    //layout_manager::update_workspace_layout(monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx);
+    //workspace_manager::update_workspace_layout(monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx);
   }
 }
