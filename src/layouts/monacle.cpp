@@ -13,13 +13,15 @@ namespace layout_manager {
     if (!monitor)
       return;
 
-    XSetInputFocus(globals::display, workspace.windows[workspace.focused_idx].xwindow, RevertToPointerRoot, CurrentTime);
+    workspace.focused_idx = 0;
+    XSetInputFocus(globals::display, workspace.windows[0].xwindow, RevertToPointerRoot, CurrentTime);
 
     for (int i = 0; i < workspace.windows.size(); i++) {
       // only one window - fullscreen
       if (workspace.windows[i].stack_idx == 0) {
-          XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x, monitor->pos.y,
+        XMoveResizeWindow(globals::display, workspace.windows[i].xwindow, monitor->pos.x, monitor->pos.y,
                           monitor->dim.width, monitor->dim.height);
+
         XMapWindow(globals::display, workspace.windows[i].xwindow);
       }
       else {

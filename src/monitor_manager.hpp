@@ -13,6 +13,8 @@ struct position {
 };
 
 struct monitor {
+  monitor() { }
+
   monitor(const XineramaScreenInfo& screen_info) {
     this->dim.width = screen_info.width;
     this->dim.height = screen_info.height;
@@ -30,7 +32,7 @@ namespace monitor_manager {
   extern std::vector<monitor> monitors;
   extern int active_monitor_idx;
 
-  extern bool init();
+  extern void init();
   extern int get_monitor_count(bool force_update = false);
 
   extern monitor& get_active_monitor();

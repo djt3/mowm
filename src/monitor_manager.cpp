@@ -10,32 +10,35 @@ namespace monitor_manager {
   std::vector<monitor> monitors;
   int active_monitor_idx = 0;
 
-  bool init() {
+  void init() {
     if (!XineramaIsActive(globals::display)) {
       std::cout << "Error! Xinerama not active!" << std::endl;
-      return false;
+      return;
     }
 
     // set monitor_count
+    int old_monitor_count = monitor_count;
     int monitor_count = get_monitor_count(true);
+
+    monitors.resize(monitor_count);
 
     for (unsigned i = 0; i < monitor_count; i++) {
       monitor monitor(screen_info[i]);
-      std::cout << monitor_count << std::endl;
-      if (i >= monitors.size()) {
-        std::cout << "NEWMONITOROROROO!@O!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl;
+
+      if (i >= old_monitor_count) {
         monitor.workspace_idx = i + 1;
         monitor.old_workspace_idx = i + 1;
-        monitors.push_back(monitor);
+        monitors[i] = monitor;
       }
       else {
         monitor.workspace_idx = monitors[i].workspace_idx;
         monitor.old_workspace_idx = monitors[i].old_workspace_idx;
-        monitors[i] = monitor;
       }
+        
+      monitors[i] = monitor;
     }
 
-    return true;
+    return;
   }
 
   int get_monitor_count(bool force_update) {

@@ -14,8 +14,10 @@ int error_handler(Display* display, XErrorEvent* error) {
 }
 
 int main() {
-  if (!(globals::display = XOpenDisplay(0)) || !monitor_manager::init())
+  if (!(globals::display = XOpenDisplay(0)))
     exit(1);
+
+  monitor_manager::init();
 
   int screen = DefaultScreen(globals::display);
   auto root_window = RootWindow(globals::display, screen);
