@@ -18,7 +18,6 @@ void workspace::map() {
 namespace workspace_manager {
   std::array<workspace, 10> workspaces;
 
-
   int find_window_idx_in_workspace(Window xwindow, int workspace_idx) {
     workspace& workspace = workspaces[workspace_idx];
 
@@ -57,6 +56,8 @@ namespace workspace_manager {
     XSetInputFocus(globals::display, xwindow, RevertToPointerRoot, CurrentTime);
 
     workspace.focused_idx = window_idx;
+    // set the monitor as active
+    monitor_manager::focus_monitor_with_workspace(workspace_idx);
   }
 
   void make_focused_window_primary() {
@@ -127,16 +128,34 @@ namespace workspace_manager {
     if (workspace_idx == current_monitor.workspace_idx)
       return;
 
-    // unmap old workspace
-    workspaces[current_monitor.workspace_idx].unmap();
+    monitor* monitor;
 
-    // save previous workspace
-    current_monitor.old_workspace_idx = current_monitor.workspace_idx;
-    // switch to new workspace
-    current_monitor.workspace_idx = workspace_idx;
-    workspaces[current_monitor.workspace_idx].map();
-    // layout the windows
-    update_workspace_layout(workspace_idx);
+    // if there is another monitor with this workpace, handle accordingly
+    if ((monitor = monitor_manager::get_monitor_with_workspace(workspace_idx))) {
+      // set new workspace
+      current_monitor.old_workspace_idx = current_monitor.workspace_idx;
+      current_monitor.workspace_idx = workspace_idx;
+
+      // swap on the other monitor
+      monitor->old_workspace_idx = workspace_idx;
+      monitor->workspace_idx = current_monitor.old_workspace_idx;
+
+      update_workspace_layout(workspace_idx);
+      update_workspace_layout(monitor->workspace_idx);
+    }
+
+    else {
+      // unmap old workspace
+      workspaces[current_monitor.workspace_idx].unmap();
+
+      // save previous workspace
+      current_monitor.old_workspace_idx = current_monitor.workspace_idx;
+      // switch to new workspace
+      current_monitor.workspace_idx = workspace_idx;
+      workspaces[current_monitor.workspace_idx].map();
+      // layout the windows
+      update_workspace_layout(workspace_idx);
+    }
   }
 
   void move_focused_window_to_workspace(int workspace_idx) {
@@ -231,6 +250,6 @@ namespace workspace_manager {
   }
 
   void update_workspace_layout(int workspace_idx) {
-    layout_manager::layouts[layout_manager::current_layout]->update_workspace_layout(workspace_idx);
+    layout_manager::layouts[workspaces[workspace_idx].layout_idx]->update_workspace_layout(workspace_idx);
   }
 }

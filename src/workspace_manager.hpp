@@ -15,7 +15,7 @@ struct window {
 
 struct workspace {
   std::vector<window> windows;
-  int focused_idx;
+  int focused_idx, layout_idx;
 
   void unmap();
   void map();

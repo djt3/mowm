@@ -17,12 +17,13 @@ namespace monitor_manager {
     }
 
     // set monitor_count
-    get_monitor_count(true);
+    int monitor_count = get_monitor_count(true);
 
     for (unsigned i = 0; i < monitor_count; i++) {
       monitor monitor(screen_info[i]);
-
+      std::cout << monitor_count << std::endl;
       if (i >= monitors.size()) {
+        std::cout << "NEWMONITOROROROO!@O!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1" << std::endl;
         monitor.workspace_idx = i + 1;
         monitor.old_workspace_idx = i + 1;
         monitors.push_back(monitor);
@@ -38,7 +39,7 @@ namespace monitor_manager {
   }
 
   int get_monitor_count(bool force_update) {
-    if (!screen_info || force_update)
+    //if (!screen_info || force_update)
       screen_info = XineramaQueryScreens(globals::display, &monitor_count);
 
     return monitor_count;
@@ -48,12 +49,27 @@ namespace monitor_manager {
     return monitors[active_monitor_idx];
   }
 
-  monitor* get_monitor_with_workspace(int workspace_idx) {
-    for (auto& monitor : monitors) {
-      if (monitor.workspace_idx == workspace_idx)
-        return &monitor;
+  int get_monitor_idx_with_workspace(int workspace_idx) {
+    for (int i = 0; i < monitors.size(); i++) {
+      if (monitors[i].workspace_idx == workspace_idx)
+        return i;
     }
+    return -1;
+  }
+
+  monitor* get_monitor_with_workspace(int workspace_idx) {
+    int idx = get_monitor_idx_with_workspace(workspace_idx);
+    if (idx != -1)
+      return &monitors[idx];
 
     return nullptr;
+  }
+
+  void focus_monitor_with_workspace(int workspace_idx) {
+    int idx = get_monitor_idx_with_workspace(workspace_idx);
+    if (idx == -1)
+      return;
+
+    active_monitor_idx = idx;
   }
 }

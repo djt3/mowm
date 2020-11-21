@@ -13,7 +13,6 @@ namespace layout_manager {
   extern void destroy();
 
   extern std::vector<layout*> layouts;
-  extern int current_layout;
 }
 
 #endif

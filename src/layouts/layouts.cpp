@@ -6,7 +6,6 @@
 
 namespace layout_manager {
   std::vector<layout*> layouts;
-  int current_layout = 0;
 
   void init() {
     // populate vector with all layouts, default first

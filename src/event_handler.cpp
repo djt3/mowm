@@ -60,7 +60,7 @@ namespace event_handler {
           int workspace_idx = monitor_manager::get_active_monitor().workspace_idx;
           
           // increment the current layour idx
-          ++layout_manager::current_layout %= layout_manager::layouts.size();
+          ++workspace_manager::workspaces[workspace_idx].layout_idx %= layout_manager::layouts.size();
           
           // map to make sure all windows are shown
           workspace_manager::workspaces[workspace_idx].map();
@@ -92,6 +92,8 @@ namespace event_handler {
   }
 
   void dispatch(XEvent& event) {
+    monitor_manager::init();
+    
     if (event.type == KeyPress)
       events::key_press(event.xkey);
     else if (event.type == MapRequest)
@@ -100,6 +102,5 @@ namespace event_handler {
       events::destroy_notify(event.xdestroywindow);
     else if (event.type == EnterNotify)
       events::enter_notify(event.xcrossing);
-    //workspace_manager::update_workspace_layout(monitor_manager::monitors[monitor_manager::active_monitor_idx].workspace_idx);
   }
 }

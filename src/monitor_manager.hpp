@@ -34,7 +34,9 @@ namespace monitor_manager {
   extern int get_monitor_count(bool force_update = false);
 
   extern monitor& get_active_monitor();
+  extern int get_monitor_idx_with_workspace(int workspace_idx);
   extern monitor* get_monitor_with_workspace(int workspace_idx);
+  extern void focus_monitor_with_workspace(int workspace_idx);
 }
 
 #endif
